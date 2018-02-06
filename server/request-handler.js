@@ -14,6 +14,9 @@ this file and include it in basic-server.js so that it actually works.
 var messageArray = [{
   username: 'jeff',
   text: 'check it out'
+}, {
+  username: 'john',
+  text: 'checking this out'
 }];
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -53,16 +56,32 @@ var requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  var body = '';
+  var body;
   if (request.method === 'POST') {
     request.on('data', (postdata) =>{
-      body += JSON.stringify(postdata);
+      var holderBuff = postdata.toString('utf8');
+      var newHolder = holderBuff.replace(/=/gi, ':');
+      var editHolder = newHolder.split('&');
+      var obj = {username: editHolder[0].substr(9), text: editHolder[1].substr(5), roomname: editHolder[2].substr(9)};
+      // var newHolder = holderBuff.replace(/=/gi, ': ');
+      // body = newHolder.split('&');
+      //body = holderBuff.split('&');
+      // body += JSON.parse(JSON.stringify(obj));
+      body = obj;
     });
     request.on('end', () => {
       try {
-        messageArray.push(JSON.parse(body));
+        // if (JSON.parse(body).type === 'Buffer') {
+          // console.log('this is a buffer');
+          // var holderBuff = body.toString('utf8');
+          // console.log(holderBuff);
+          
+          
+        // }
+        messageArray.push(body);
       } catch (error) {
-        console.log('there was an error in post');
+        response.writeHead(404, headers);
+        return;
       }
     });
     // request.on('data', (data) => somehting
@@ -71,12 +90,12 @@ var requestHandler = function(request, response) {
     //and then json parsed to be a json object, and then you can add it.)
     //
     //
-
-    response.writeHead(201, headers);
-    response.end('post world');
+    console.log(headers);
+    response.writeHead(204, headers);
+    response.end();
     return;
   } 
-  if (request.method === 'GET' || request.method === 'OPTIONS') { 
+  if (request.method === 'GET') { 
     //if (request.url === '/classes/messages') {
     response.writeHead(200, headers);
     var jsonObj = JSON.stringify({
@@ -85,6 +104,11 @@ var requestHandler = function(request, response) {
     response.end(jsonObj);
     return;
     //} 
+  }
+  if (request.method === 'OPTIONS') {
+    response.writeHead(201, headers);
+    response.end('option work');
+    return; 
   }
   
   response.writeHead(404, headers);
