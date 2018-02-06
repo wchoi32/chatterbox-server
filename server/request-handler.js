@@ -11,7 +11,10 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var messageArray = [];
+var messageArray = [{
+  username: 'jeff',
+  text: 'check it out'
+}];
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -53,13 +56,13 @@ var requestHandler = function(request, response) {
   var body = '';
   if (request.method === 'POST') {
     request.on('data', (postdata) =>{
-      console.log(postdata);
-      body += postdata;
+      body += JSON.stringify(postdata);
     });
     request.on('end', () => {
       try {
         messageArray.push(JSON.parse(body));
       } catch (error) {
+        console.log('there was an error in post');
       }
     });
     // request.on('data', (data) => somehting
@@ -69,23 +72,22 @@ var requestHandler = function(request, response) {
     //
     //
 
-    response.writeHead(201);
+    response.writeHead(201, headers);
     response.end('post world');
     return;
   } 
-  
-  if (request.method === 'GET') { 
-    if (request.url === '/classes/messages') {
-      response.writeHead(200, headers);
-      var jsonObj = JSON.stringify({
-        results: messageArray
-      });
-      response.end(jsonObj);
-      return;
-    } 
+  if (request.method === 'GET' || request.method === 'OPTIONS') { 
+    //if (request.url === '/classes/messages') {
+    response.writeHead(200, headers);
+    var jsonObj = JSON.stringify({
+      results: messageArray
+    });
+    response.end(jsonObj);
+    return;
+    //} 
   }
   
-  response.writeHead(404);
+  response.writeHead(404, headers);
   response.end('404 all else');
   return;
   
