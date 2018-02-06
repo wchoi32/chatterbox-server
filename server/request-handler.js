@@ -50,22 +50,44 @@ var requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  
+  var body = '';
   if (request.method === 'POST') {
-    console.log(request._postData);
-    if (request._postData) {
-      messageArray.push(request._postData);
-    }
+    request.on('data', (postdata) =>{
+      console.log(postdata);
+      body += postdata;
+    });
+    request.on('end', () => {
+      try {
+        messageArray.push(JSON.parse(body));
+      } catch (error) {
+      }
+    });
+    // request.on('data', (data) => somehting
+    
+    // data needs to be stringified to be a string
+    //and then json parsed to be a json object, and then you can add it.)
+    //
+    //
+
     response.writeHead(201);
     response.end('post world');
     return;
-  } else if (request.method === 'GET') { 
-    response.writeHead(statusCode, headers);
-    var jsonObj = JSON.stringify({
-      results: messageArray
-    });
-    response.end(jsonObj);
+  } 
+  
+  if (request.method === 'GET') { 
+    if (request.url === '/classes/messages') {
+      response.writeHead(200, headers);
+      var jsonObj = JSON.stringify({
+        results: messageArray
+      });
+      response.end(jsonObj);
+      return;
+    } 
   }
+  
+  response.writeHead(404);
+  response.end('404 all else');
+  return;
   
   
   // response.writeHead(statusCode, headers);

@@ -21,12 +21,12 @@ module.exports = {
   request: function(url, method, postdata) {
     this.url = url;
     this.method = method;
-    this._postData = postdata;
+    this.data = postdata;
     this.setEncoding = function() { /* noop */ };
 
     this.addListener = this.on = function(type, callback) {
       if (type === 'data') {
-        callback(JSON.stringify(this._postData));
+        callback(JSON.stringify(this.data));
       }
 
       if (type === 'end') {
