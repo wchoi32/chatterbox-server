@@ -65,7 +65,6 @@ var app = {
       success: function(data) {
         // Don't bother if we have nothing to work with
         if (!data.results || !data.results.length) { 
-          console.log('nothing here');
           return; 
         }
 
@@ -75,9 +74,7 @@ var app = {
         // Get the last message
         var mostRecentMessage = data.results[data.results.length - 1];
         // Only bother updating the DOM if we have a new message
-        console.log(mostRecentMessage.objectId);
         if (mostRecentMessage.objectId !== app.lastMessageId) {
-          console.log('this is running');
           // Update the UI with the fetched rooms
           app.renderRoomList(data.results);
 

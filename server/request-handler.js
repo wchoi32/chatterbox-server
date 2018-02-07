@@ -11,22 +11,25 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var messageArray = [{
-  username: 'jeff',
-  text: 'check it out'
-}, {
-  username: 'john',
-  text: 'checking this out'
-}];
-var defaultCorsHeaders = {
+var url = require('url');
+var messageArray = [];
+var headers = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
+  'access-control-max-age': 10, // Seconds.
+  'Content-Type': 'application/json'
 };
 var objectIDcount = 1;
 
 var requestHandler = function(request, response) {
+  var route = url.parse(request.url).pathname;
+  if (route !== '/classes/messages') {
+    response.writeHead(404, headers);
+    response.end('u messed up');
+  }
+  
+
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -48,36 +51,29 @@ var requestHandler = function(request, response) {
 
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+
 
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'application/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
   var body = '';
   if (request.method === 'POST') {
-    var totaldata = '';
     request.on('data', (postdata) =>{
-      // var holderBuff = postdata.toString('utf8');
-      // var newHolder = holderBuff.replace(/=/gi, ':');
-      // var editHolder = newHolder.split('&');
-      // var obj = {username: editHolder[0].substr(9), text: editHolder[1].substr(5), roomname: editHolder[2].substr(9)};
-      // // var newHolder = holderBuff.replace(/=/gi, ': ');
-      // // body = newHolder.split('&');
-      // //body = holderBuff.split('&');
-      // // body += JSON.parse(JSON.stringify(obj));
-      // body = obj;
-      // response.end(body);
       body += postdata;
     });
     request.on('end', () => {
       if (body) {
         console.log(body);
         var messageData = JSON.parse(body);
+        if (messageData.message === undefined || messageData.username === undefined) {
+          response.writeHead(404, headers);
+          response.end('u messed up');
+          return;
+        }
         messageData.objectId = ++objectIDcount;
         messageArray.push(messageData);
         response.writeHead(201, headers);
@@ -94,17 +90,15 @@ var requestHandler = function(request, response) {
     return;
   } 
   if (request.method === 'GET') { 
-    //if (request.url === '/classes/messages') {
     response.writeHead(200, headers);
     var jsonObj = JSON.stringify({
       results: messageArray
     });
     response.end(jsonObj);
     return;
-    //} 
   }
   if (request.method === 'OPTIONS') {
-    response.writeHead(201, headers);
+    response.writeHead(201, null);
     response.end('option work');
     return; 
   }
@@ -112,22 +106,6 @@ var requestHandler = function(request, response) {
   response.writeHead(404, headers);
   response.end('404 all else');
   return;
-  
-  
-  // response.writeHead(statusCode, headers);
-  // var testArr = ['result', 'another'];
-  // var jsonObj = JSON.stringify({
-  //   results: testArr
-  // });
-
-  // Make sure to always call response.end() - Node may not send
-  // anything back to the client until you do. The string you pass to
-  // response.end() will be the body of the response - i.e. what shows
-  // up in the browser.
-  //
-  // Calling .end "flushes" the response's internal buffer, forcing
-  // node to actually send all the data over to the client.
-  // response.end(jsonObj);
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
