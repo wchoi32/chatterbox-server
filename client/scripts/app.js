@@ -42,14 +42,14 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'POST',
-      data: message,
+      data: JSON.stringify(message),
       contentType: 'application/json',
       success: function (data) {
         // Clear messages input
         app.$message.val('');
         console.log('post success');
         // Trigger a fetch to update the messages, pass true to animate
-        app.fetch(true);
+        app.fetch();
       },
       error: function (error, textStatus, errorThrown) {
         debugger;
@@ -74,8 +74,8 @@ var app = {
 
         // Get the last message
         var mostRecentMessage = data.results[data.results.length - 1];
-        debugger;
         // Only bother updating the DOM if we have a new message
+        console.log(mostRecentMessage.objectId);
         if (mostRecentMessage.objectId !== app.lastMessageId) {
           console.log('this is running');
           // Update the UI with the fetched rooms

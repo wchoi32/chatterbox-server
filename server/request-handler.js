@@ -24,6 +24,7 @@ var defaultCorsHeaders = {
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
 };
+var objectIDcount = 1;
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -45,6 +46,7 @@ var requestHandler = function(request, response) {
   // The outgoing status.
   var statusCode = 200;
 
+
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
 
@@ -56,32 +58,30 @@ var requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  var body;
+  var body = '';
   if (request.method === 'POST') {
+    var totaldata = '';
     request.on('data', (postdata) =>{
-      var holderBuff = postdata.toString('utf8');
-      var newHolder = holderBuff.replace(/=/gi, ':');
-      var editHolder = newHolder.split('&');
-      var obj = {username: editHolder[0].substr(9), text: editHolder[1].substr(5), roomname: editHolder[2].substr(9)};
-      // var newHolder = holderBuff.replace(/=/gi, ': ');
-      // body = newHolder.split('&');
-      //body = holderBuff.split('&');
-      // body += JSON.parse(JSON.stringify(obj));
-      body = obj;
+      // var holderBuff = postdata.toString('utf8');
+      // var newHolder = holderBuff.replace(/=/gi, ':');
+      // var editHolder = newHolder.split('&');
+      // var obj = {username: editHolder[0].substr(9), text: editHolder[1].substr(5), roomname: editHolder[2].substr(9)};
+      // // var newHolder = holderBuff.replace(/=/gi, ': ');
+      // // body = newHolder.split('&');
+      // //body = holderBuff.split('&');
+      // // body += JSON.parse(JSON.stringify(obj));
+      // body = obj;
+      // response.end(body);
+      body += postdata;
     });
     request.on('end', () => {
-      try {
-        // if (JSON.parse(body).type === 'Buffer') {
-          // console.log('this is a buffer');
-          // var holderBuff = body.toString('utf8');
-          // console.log(holderBuff);
-          
-          
-        // }
-        messageArray.push(body);
-      } catch (error) {
-        response.writeHead(404, headers);
-        return;
+      if (body) {
+        console.log(body);
+        var messageData = JSON.parse(body);
+        messageData.objectId = ++objectIDcount;
+        messageArray.push(messageData);
+        response.writeHead(201, headers);
+        response.end(JSON.stringify(messageData));
       }
     });
     // request.on('data', (data) => somehting
@@ -90,9 +90,7 @@ var requestHandler = function(request, response) {
     //and then json parsed to be a json object, and then you can add it.)
     //
     //
-    console.log(headers);
-    response.writeHead(204, headers);
-    response.end();
+
     return;
   } 
   if (request.method === 'GET') { 
